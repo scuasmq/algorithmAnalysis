@@ -1,55 +1,65 @@
+//用链式前向星，TLE，以后再改8...
 #include <bits/stdc++.h>
+
 using namespace std;
-typedef long long ll;
-const int maxn = 1e6+10;
-struct Edge{
-    int w,u,v;
-}e[maxn];
-
-int fa[maxn];
-int n,m;
-void init(){
-    for(int i=0;i<maxn;i++) fa[i] = i;
-}
-bool cmp(Edge a, Edge b){
-    return a.w<b.w;
-}
-
-int Find(int i){
-    if(fa[i]!=i) return fa[i] = Find(fa[i]);
-    else return i;
-}
-
-int Union(int u,int v){
-    int ru = Find(u);
-    int rv = Find(v);
-    if(ru!=rv){
-        fa[rv] = ru;
-        return true;
+const int maxn = 1e3+10;
+const int maxm = 1e6+10;
+const int INF = 0x3f3f3f3f;
+struct node
+{
+    int v,w;
+    node(int _v,int _w){
+        v = _v;
+        w = _w;
     }
-    return false;
+    bool operator<(const node t) const{
+        return w>t.w;
+    }
+};
+int head[maxn],ecnt;
+struct Edge{
+    int v,w,nxt;
+}e[maxm<<1];
+void init(){
+    memset(head,-1,sizeof head);
+    ecnt = 0;
+}
+void addEdge(int u, int v,int w){
+    e[ecnt].v = v;
+    e[ecnt].w = w;
+    e[ecnt].nxt = head[u];
+    head[u] = ecnt++;
 }
 
+
+int n,m;
+int vis[maxn];
+long long res = 0;
+void Prim(){
+    priority_queue<node> pQ;
+    for(int i=head[1];~i;i=e[i].nxt) pQ.push(node(e[i].v,e[i].w));
+    vis[1] = true;
+    int cnt = n-1;
+    while (!pQ.empty()&&cnt)
+    {
+        node t = pQ.top();pQ.pop();
+        if(vis[t.v]) continue;
+        res += t.w; cnt--; vis[t.v] = 1;
+        for(int i=head[t.v];~i;i=e[i].nxt)
+            if(!vis[e[i].v])   pQ.push(node(e[i].v,e[i].w));
+    }
+}
 int main(){
-    // freopen("in","r",stdin);
-    // freopen("out","w",stdout);
     init();
     scanf("%d%d",&n,&m);
     for(int i=0;i<m;i++){
-        int u,v,w;
-        scanf("%d%d%d",&u,&v,&w);
-        e[i].u = u; e[i].v=v; e[i].w=w;
+        int x,y,z;
+        scanf("%d%d%d",&x,&y,&z);
+        if(x==y) continue;
+        addEdge(x,y,z);
+        addEdge(y,x,z);
     }
-    sort(e,e+m,cmp);
-    int cnt = 0;
-    ll res = 0;
-    for(int i=0;i<m&&cnt<n-1;i++){
-        if(Union(e[i].u,e[i].v)) cnt++,res+=e[i].w;
-    }
-    // for(int i=1;i<=n;i++) printf("%d ",fa[i]);
-    // printf("\n%d",cnt);
-    // puts("");
-    
-    printf("%lld\n",cnt==n-1?res:-1);
+    Prim();
+    printf("%lld\n",res);
     return 0;
 }
